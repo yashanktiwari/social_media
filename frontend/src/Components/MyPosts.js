@@ -12,7 +12,7 @@ const MyPosts = () => {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    console.log(userStore);
+    // console.log(userStore);
     if (userStore) {
       if (userStore.user.mobile.length === 0) {
         navigate("/profile/:id");

@@ -16,6 +16,10 @@ userRouter.route('/getallusers').post(getAllUsers);
 
 userRouter.route('/followuser').post(followUser);
 
+userRouter.route('/sendfollowrequest').post(sendFollowRequest);
+
+userRouter.route('/cancelfollowrequest').post(cancelFollowRequest);
+
 userRouter.route('/unfollowuser').post(unfollowUser);
 
 userRouter.route('/getallposts').post(getAllPosts);
@@ -31,6 +35,12 @@ userRouter.route('/getfollows').post(getFollows);
 userRouter.route('/getcomments').post(getComments);
 
 userRouter.route('/getlikes').post(getLikes);
+
+userRouter.route('/getrequests').post(getRequests);
+
+userRouter.route('/acceptfollowrequest').post(acceptFollowRequest);
+
+userRouter.route('/rejectfollowrequest').post(rejectFollowRequest);
 
 async function updateProfile(req, res, next) {
   const { id } = req.params;
@@ -208,7 +218,6 @@ async function getAllPosts(req, res, next) {
       const p = await Post.findById(post._id).populate('createdBy');
       allPosts.push(p);
     }
-    // console.log(allPosts);
 
     const newArr = _.sortBy(allPosts, "createdAt");
 
@@ -334,4 +343,120 @@ async function getLikes(req, res, next) {
   }
 }
 
+async function sendFollowRequest(req, res, next) {
+  const {senderid, recieverid} = req.body;
+
+  const currUser = await User.findById(senderid);
+  if(currUser) {
+    currUser.followingRequests.push(recieverid);
+    await currUser.save();
+    const recievedUser = await User.findById(recieverid);
+    if(recievedUser) {
+      recievedUser.followerRequests.push(senderid);
+      await recievedUser.save();
+
+      res.send({
+        msg: 'Follow request sent',
+        user: currUser
+      });
+    } else {
+      return next(createError('401', 'User not found'));
+    }
+  } else {
+    return next(createError('401', 'User not found'));
+  }
+}
+
+async function cancelFollowRequest(req, res, next) {
+  const {senderid, recieverid} = req.body;
+  const currUser = await User.findById(senderid);
+  if(currUser) {
+    let idx1 = currUser.followingRequests.indexOf(recieverid);
+    currUser.followingRequests.splice(idx1, 1);
+    await currUser.save();
+
+    const followingUser = await User.findById(recieverid);
+    if(followingUser) {
+      let idx2 = followingUser.followerRequests.indexOf(senderid);
+      followingUser.followerRequests.splice(idx2, 1);
+      await followingUser.save();
+
+      res.send({
+        user: currUser
+      });
+    } else {
+      return next(createError(500, "User not found"));
+    }
+  } else {
+    return next(createError(500, "User not found"));
+  }
+}
+
+async function getRequests(req, res, next) {
+  const {userid} = req.body;
+  const user = await User.findById(userid).populate('followingRequests').populate('followerRequests');
+
+  if(user) {
+    res.send({
+      followingRequests: user.followingRequests,
+      followerRequests: user.followerRequests
+    });
+  } else {
+    return next(createError(400, 'User not found'));
+  }
+}
+
+async function acceptFollowRequest(req, res, next) {
+  const {senderid, recieverid} = req.body;
+
+  const currUser = await User.findById(recieverid);
+  if(currUser) {
+    currUser.followers.push(senderid);
+    let idx1 = currUser.followerRequests.indexOf(senderid);
+    currUser.followerRequests.splice(idx1, 1);
+    await currUser.save();
+
+    const senderUser = await User.findById(senderid);
+    if(senderUser) {
+      senderUser.following.push(recieverid);
+      let idx2 = senderUser.followingRequests.indexOf(recieverid);
+      senderUser.followingRequests.splice(idx2, 1);
+      await senderUser.save();
+
+      res.send({
+        user: currUser
+      });
+    } else {
+      return next(createError(500, "Something went wrong"));
+    }
+  } else {
+    return next(createError(500, "Something went wrong"));
+  }
+}
+
+async function rejectFollowRequest(req, res, next) {
+  const {senderid, recieverid} = req.body;
+
+  const currUser = await User.findById(recieverid);
+  if(currUser) {
+    let idx = currUser.followerRequests.indexOf(senderid);
+    currUser.followerRequests.splice(idx, 1);
+    await currUser.save();
+
+    const senderUser = await User.findById(senderid);
+    if(senderUser) {
+      let idx2 = senderUser.followingRequests.indexOf(recieverid);
+      senderUser.followingRequests.splice(idx2, 1);
+      await senderUser.save();
+
+      res.send({
+        user: currUser
+      });
+    } else {
+      return next(createError(500, "Something went wrong"));
+    }
+  } else {
+    return next(createError(500, "Something went wrong"));
+  }
+}
 module.exports = userRouter;

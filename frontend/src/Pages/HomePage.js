@@ -23,24 +23,26 @@ const HomePage = () => {
   const [showCommentModal, setShowCommentModal] = useState(false);
 
   useEffect(() => {
-    axios.get(`${base_uri}/checkauthuser`, { withCredentials: true, credentials: 'include' })
-      .then((res) => {
-        // console.log(res.data.user);
-        dispatch(setUser(res.data?.user));
-        // if(userStore) console.log(userStore);
-      })
-      .catch((err) => {
-        console.log(err);
-        // console.log(error.response.status);
-        // console.log(error.response.data);
-        navigate('/login');
-      })
+    if(!localStorage.getItem('token')) {
+      navigate('/login');
+    }
+    // axios.get(`${base_uri}/checkauthuser`, { withCredentials: true, credentials: 'include' })
+    //   .then((res) => {
+    //     dispatch(setUser(res.data?.user));
+    //   })
+    //   .catch((err) => {
+    //     console.log(err);
+    //     // console.log(error.response.status);
+    //     // console.log(error.response.data);
+    //     navigate('/login');
+    //   })
   }, [])
 
   useEffect(() => {
     if (userStore) {
       if (userStore.user?.mobile?.length === 0) {
         navigate(`/profile/${userStore.user._id}`);
+        console.log(userStore);
         console.log("mobile not set");
       } else {
         console.log("mobile set");

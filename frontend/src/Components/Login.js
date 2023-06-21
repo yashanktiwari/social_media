@@ -4,6 +4,8 @@ import axios from 'axios';
 import { base_uri } from "../utils/constants";
 import {toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../utils/userSlice';
 
 const Login = () => {
 
@@ -19,35 +21,43 @@ const Login = () => {
   const [showModal, setShowModal] = useState(false);
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleLogin = (e) => {
     e.preventDefault();
 
-    axios.post(`${base_uri}/login`, { email, password }, { withCredentials: true, credentials: 'include' })
+    axios.post(`${base_uri}/login`, { email, password })
       .then((res) => {
         console.log(res);
         if (res.data?.user) {
           toast.success("User logged in successfully")
+          localStorage.setItem('token', res.data.token);
+          dispatch(setUser(res.data?.user));
           navigate('/');
         }
       })
       .catch((error) => {
         toast.error(error.response.data);
+        console.log(error);
+        // toast.error(error.response.data);
         // console.log(error.response.status); // error status
         // console.log(error.response.data); // error message
       })
   }
 
   useEffect(() => {
-    axios.get(`${base_uri}/checkunauthuser`, { withCredentials: true, credentials: 'include' })
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((error) => {
-        // console.log(error.response.status);
-        // console.log(error.response.data);
-        navigate('/');
-      })
+    if(localStorage.getItem('token')) {
+      navigate('/');
+    }
+    // axios.get(`${base_uri}/checkunauthuser`, { withCredentials: true, credentials: 'include' })
+    //   .then((res) => {
+    //     console.log(res);
+    //   })
+    //   .catch((error) => {
+    //     // console.log(error.response.status);
+    //     // console.log(error.response.data);
+    //     navigate('/');
+    //   })
   }, [])
 
   const handleForgotPassword = (e) => {

@@ -47,6 +47,24 @@ const UserSchema = new mongoose.Schema({
     ],
     default: []
   },
+  followingRequests: {
+    type: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }
+    ],
+    default: []
+  },
+  followerRequests: {
+    type: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }
+    ],
+    default: []
+  },
   following: {
     type: [
       {

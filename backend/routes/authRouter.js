@@ -67,24 +67,20 @@ async function signupUser(req, res, next) {
 
 async function loginUser(req, res, next) {
   const { email, password } = req.body;
-
+  // console.log(email, password);
   const user = await User.findOne({ email: email });
+  // console.log(user);
   if (user) {
     const result = await bcrypt.compare(password, user.password);
     if (result) {
       const token = jwt.sign({ payload: user._id }, process.env.PRIVATE_KEY);
 
-      res.cookie('token', token, {
-        httpOnly: true,
-        sameSite: "none",
-        secure: true,
-      });
-
       const { password, ...info } = user._doc;
 
       res.status(200).send({
         username: user.username,
-        user: info
+        user: info,
+        token: token
       });
     } else {
       // console.log(err.status);
@@ -159,7 +155,6 @@ function forgotPassword(req, res) {
           })
       });
 }
-
 
 function sendmail(email, otp) {
   let transporter = nodemailer.createTransport({

@@ -9,15 +9,18 @@ import { base_uri } from "../utils/constants";
 const Signup = () => {
 
   useEffect(() => {
-    axios.get(`${base_uri}/checkunauthuser`, {withCredentials: true, credentials: 'include'})
-    .then((res) => {
-      console.log(res);
-    })
-    .catch((error) => {
-      // console.log(error.response.status);
-      // console.log(error.response.data);
+    if(localStorage.getItem('token')) {
       navigate('/');
-    })
+    }
+    // axios.get(`${base_uri}/checkunauthuser`, {withCredentials: true, credentials: 'include'})
+    // .then((res) => {
+    //   console.log(res);
+    // })
+    // .catch((error) => {
+    //   // console.log(error.response.status);
+    //   // console.log(error.response.data);
+    //   navigate('/');
+    // })
   }, [])
 
   const [username, setUsername] = useState("");

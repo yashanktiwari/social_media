@@ -14,16 +14,10 @@ const Sidebar = () => {
   const userStore = useSelector((store) => store.user);
 
   const handleLogout = async () => {
-    axios
-      .get(`${base_uri}/logout`, { withCredentials: true })
-      .then((res) => {
-        navigate("/login");
-        toast.success('Logged out successfully');
-        dispatch(setUser({}));
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    localStorage.removeItem('token');
+    dispatch(setUser({}));
+    navigate('/login');
+
   };
 
   const dispatch = useDispatch();
